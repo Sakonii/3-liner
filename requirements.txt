@@ -1,0 +1,5 @@
+numpy>=1.19.4
+opencv-python>=4.4.0.46
+torch>=1.7.0
+torchvision>=0.8.1
+detectron2 @ git+https://github.com/facebookresearch/detectron2.git@f1d0c05bc5580388348388213e0a77d722d90f17
