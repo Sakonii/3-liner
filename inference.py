@@ -13,9 +13,9 @@ class Inference:
         self,
         modelDetection,
         labelFile="./labels.csv",
-        file_path="./input/",
+        folderPath="./input/",
     ):
-        self.img = cv2.imread(file_path)
+        self.img = cv2.imread(folderPath)
         self.detection = modelDetection
         self.map_cols = ["idx", "labels"]
         self.labels = pd.read_csv("./labels.csv", header=None, names=self.map_cols)

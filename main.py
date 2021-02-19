@@ -5,9 +5,9 @@ from inference import Inference
 
 
 def main():
-    detection = Detection(modelWeights=args.model_detection, cfgPath=args.cfg_path)
+    detection = Detection(modelWeights=args.modelDetection, cfgPath=args.cfgPath)
     Inference(
-        file_path=args.folder_path,
+        folderPath=args.folderPath,
         labelFile=args.labelFile,
         modelDetection=detection,
     ).start_inference()
@@ -15,21 +15,21 @@ def main():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Image File Name")
+    parser = argparse.ArgumentParser(description="Image File Folder")
     parser.add_argument(
-        "--folder_path",
+        "--folderPath",
         type=str,
         default="./input/img.jpg",
-        help="Enter the Input camera number. Default=0; May vary depending on number of cameras connected.",
+        help="Folder to search for images",
     )
     parser.add_argument(
-        "--model_detection",
+        "--modelDetection",
         type=str,
         default="http://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_FPN_3x/137849458/model_final_280758.pkl",
         help="Pre-trained Weights for Detectron Detection",
     )
     parser.add_argument(
-        "--cfg_path",
+        "--cfgPath",
         type=str,
         default="COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml",
         help="Path to model cfg file relative to 'detectron2/model_zoo/configs' ",
