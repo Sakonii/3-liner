@@ -83,18 +83,26 @@ class Inference:
     def search(self):
         search_strs = input(">> ").split()
         final_list = []
+        final_resized_images = []
+        width = int(500)
+        height = int(400)
+        dim = (width, height)
         for search_str in search_strs:
             img_list = self.df['preds']
-
             for i, item in enumerate(img_list):
                 print(item)
                 if search_str in item:
                     print(self.df['imgPath'][i])
-                    final_list.append(self.df['imgPath'][i])
+                    if self.df['imgPath'][i] not in final_list:
+                        final_list.append(self.df['imgPath'][i])
         for ite in final_list:
-            cv2.namedWindow(winname=f"final{ite}")
-            img = cv2.imread(ite)
-            cv2.imshow(winname=f"final{ite}", mat=img)
+            cv2.namedWindow(winname="helo")
+            img = cv2.imread(ite, cv2.IMREAD_UNCHANGED)
+            img_resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+            final_resized_images.append(img_resized)
+
+        hori = np.concatenate(final_resized_images, axis=1)
+        cv2.imshow(winname="helo", mat=hori)
         cv2.waitKey()
         cv2.destroyAllWindows()
 
