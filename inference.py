@@ -17,16 +17,18 @@ class Inference:
         folderPath="./input",
     ):
         self.folderPath = folderPath
-        # List of image's-path from folderPath
-        self.imgPathList = pd.Series(
-            glob.glob(f"{self.folderPath}/*.jpg", recursive=True)
-        )
         self.detection = modelDetection
         # Load detection labels
         self.labels = pd.read_csv("./labels.csv", header=None, names=["idx", "labels"])
         self.labels = self.labels["labels"].tolist()
         # Output dataframe declaration (empty)
         self.df = pd.DataFrame(columns=["imgPath", "preds"])
+        # List of image's-path from folderPath
+        self.imgPathList = pd.Series()
+        for fileType in ["*.png", "*.JPEG", "*.jpg"]:
+            self.imgPathList = self.imgPathList.append(
+                pd.Series(glob.glob(f"{self.folderPath}/{fileType}", recursive=True))
+            )
 
     def show_img_with_preds(self, img, preds):
         "Shows predicted labels in image"
@@ -56,15 +58,16 @@ class Inference:
                     {"imgPath": imgPath, "preds": preds}, ignore_index=True
                 )
 
-    def post_inference(self):
+    def post_inference(self, debug=True):
         "Hold the screen for key input and destroy the windows"
         print("Done. Press any key to continue ...")
         # Save preds to file
         self.df.to_feather(
             f"./preds/{self.folderPath.replace('/', '').replace('.', '')}.feather"
         )
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+        if debug:
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
     def pre_inference(self):
         "Console message before interface initialization"
@@ -75,7 +78,6 @@ class Inference:
         if os.path.isfile(featherFilePath):
             # predict only un-predicted files
             self.df = pd.read_feather(featherFilePath)
-
         print("Initializing interface ...")
 
     def start_inference(self):
