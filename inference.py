@@ -80,8 +80,26 @@ class Inference:
             self.df = pd.read_feather(featherFilePath)
         print("Initializing interface ...")
 
+    def search(self):
+        search_str = input(">> ").split()
+        img_list = self.df['preds']
+        final_list = []
+        for i, item in enumerate(img_list):
+            print(item)
+            if search_str in item:
+                print(self.df['imgPath'][i])
+                final_list.append(self.df['imgPath'][i])
+        for ite in final_list:
+            cv2.namedWindow(winname=f"final{ite}")
+            img = cv2.imread(ite)
+            cv2.imshow(winname=f"final{ite}", mat=img)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
+
+
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
         self.batch_detection()
         self.post_inference()
+        self.search()
