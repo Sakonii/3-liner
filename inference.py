@@ -81,14 +81,16 @@ class Inference:
         print("Initializing interface ...")
 
     def search(self):
-        search_str = input(">> ").split()
-        img_list = self.df['preds']
+        search_strs = input(">> ").split()
         final_list = []
-        for i, item in enumerate(img_list):
-            print(item)
-            if search_str in item:
-                print(self.df['imgPath'][i])
-                final_list.append(self.df['imgPath'][i])
+        for search_str in search_strs:
+            img_list = self.df['preds']
+
+            for i, item in enumerate(img_list):
+                print(item)
+                if search_str in item:
+                    print(self.df['imgPath'][i])
+                    final_list.append(self.df['imgPath'][i])
         for ite in final_list:
             cv2.namedWindow(winname=f"final{ite}")
             img = cv2.imread(ite)
