@@ -16,7 +16,7 @@ python3 -m pip install -r requirements.txt
 ## Inference
 
 ``` bash
-python3 main.py
+python3 main.py --folderPath './input' --labelFile labels.csv
 ```
 
 # CLI Arguments:

@@ -37,6 +37,23 @@ class Inference:
         cv2.imshow(winname="foto-filter", mat=img_predicted)
         cv2.waitKey(500)
 
+    def show_imgs(self, listOfImgPaths):
+        "Shows images from list of image paths"
+        listOfImgs = []
+        for imgPath in listOfImgPaths:
+            cv2.namedWindow(winname="foto-filter")
+            self.img = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
+            self.img = cv2.resize(self.img, (500, 400), interpolation=cv2.INTER_AREA)
+            listOfImgs.append(self.img)
+
+        # Concatenate images horizontally:
+        self.img = np.concatenate(listOfImgs, axis=1)
+        cv2.imshow(winname=imgPath, mat=self.img)
+        cv2.waitKey(500)
+        # Hold the screen
+        cv2.waitKey()
+        cv2.destroyAllWindows()
+
     def detect(self, imgPath, debug=True):
         "Detect objects in an image"
         self.img = cv2.imread(imgPath)
@@ -80,36 +97,27 @@ class Inference:
             self.df = pd.read_feather(featherFilePath)
         print("Initializing interface ...")
 
-    def search(self):
-        search_strs = input(">> ").split()
-        final_list = []
-        final_resized_images = []
-        width = int(500)
-        height = int(400)
-        dim = (width, height)
-        for search_str in search_strs:
-            img_list = self.df['preds']
-            for i, item in enumerate(img_list):
-                print(item)
-                if search_str in item:
-                    print(self.df['imgPath'][i])
-                    if self.df['imgPath'][i] not in final_list:
-                        final_list.append(self.df['imgPath'][i])
-        for ite in final_list:
-            cv2.namedWindow(winname="helo")
-            img = cv2.imread(ite, cv2.IMREAD_UNCHANGED)
-            img_resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
-            final_resized_images.append(img_resized)
-
-        hori = np.concatenate(final_resized_images, axis=1)
-        cv2.imshow(winname="helo", mat=hori)
-        cv2.waitKey()
-        cv2.destroyAllWindows()
-
+    def search(self, debug=True):
+        "Search inference for text input"
+        searchText = input("> ")
+        # For search words, add score for each mathcing label
+        self.df["score"] = 0
+        for word in searchText.split():
+            self.df["score"] += self.df.preds.map(
+                lambda preds: 1 if word in preds else 0
+            )
+        # Filter top 5 results
+        self.df.sort_values(by=["score"], ascending=False, inplace=True)
+        queriedResults = self.df[self.df["score"] != 0]
+        outputs = queriedResults.imgPath.head(5)
+        if debug:
+            print(queriedResults)
+            self.show_imgs(outputs)
+        return outputs.to_list()
 
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
         self.batch_detection()
-        self.post_inference()
-        self.search()
+        self.post_inference(debug=True)
+        self.search(debug=True)
