@@ -1,9 +1,9 @@
-import math
+import glob
 import numpy as np
-import threading
 import pandas as pd
 
 from cv2 import cv2
+from tqdm import tqdm
 
 
 class Inference:
@@ -15,28 +15,42 @@ class Inference:
         labelFile="./labels.csv",
         folderPath="./input/",
     ):
-        self.img = cv2.imread(folderPath)
+        # List of image-paths from folderPath
+        self.imgPathList = pd.Series(glob.glob(f"{folderPath}*.jpg", recursive=True))
+        # print(self.imageList)
         self.detection = modelDetection
-        self.map_cols = ["idx", "labels"]
-        self.labels = pd.read_csv("./labels.csv", header=None, names=self.map_cols)
+        self.labels = pd.read_csv("./labels.csv", header=None, names=["idx", "labels"])
         self.labels = self.labels["labels"].tolist()
         # Default window for inference
-        cv2.namedWindow(winname="foto-filter")
 
-    def batch_detection(self, toConsole=False):
-        "Detect objects in a folder"  # TO DO: "Detect objects in a batch of images in a folder"
-        if toConsole:
-            print("predicting this may take a whiile ...")
-        idxOfClasses = self.detection.predict(self.img)[:][1]
-        # Get labels from indexes
-        preds = list(map(self.labels.__getitem__, idxOfClasses))
-        print(preds)
-        # Show predictions img
-        self.img_predicted = self.detection.draw_detections(self.img)
-        cv2.imshow(winname="foto-filter", mat=self.img_predicted)
-        # Hold screen
+    def show_img_with_preds(self, img, preds):
+        "Shows predicted labels in image"
+        img_predicted = self.detection.draw_detections(img)
+        cv2.namedWindow(winname="foto-filter")
+        cv2.imshow(winname="foto-filter", mat=img_predicted)
+        cv2.waitKey(500)
+
+    def destroy_cv2_windows(self):
+        "Hold the screen for key input and destroy the windows"
+        print("Done. Press any key to continue ...")
         cv2.waitKey()
         cv2.destroyAllWindows()
+
+    def detect(self, imgPath):
+        "Detect objects in an image"
+        self.img = cv2.imread(imgPath)
+        idxOfPredictedClasses = self.detection.predict(self.img)[:][1]
+        # Get labels from indexes
+        preds = list(map(self.labels.__getitem__, idxOfPredictedClasses))
+        print(preds)
+        self.show_img_with_preds(img=self.img, preds=preds)
+        return preds
+
+    def batch_detection(self):
+        "Detect objects in a batch of images in a folder"
+        for imgPath in tqdm(self.imgPathList):
+            self.detect(imgPath)
+        
 
     def pre_inference(self):
         "Console Messages before interface initialization"
@@ -45,4 +59,4 @@ class Inference:
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
-        self.batch_detection(toConsole=True)
+        self.batch_detection()
