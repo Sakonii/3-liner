@@ -1,6 +1,7 @@
 import glob
 import numpy as np
 import pandas as pd
+import os.path
 
 from cv2 import cv2
 from tqdm import tqdm
@@ -13,15 +14,19 @@ class Inference:
         self,
         modelDetection,
         labelFile="./labels.csv",
-        folderPath="./input/",
+        folderPath="./input",
     ):
-        # List of image-paths from folderPath
-        self.imgPathList = pd.Series(glob.glob(f"{folderPath}*.jpg", recursive=True))
-        # print(self.imageList)
+        self.folderPath = folderPath
+        # List of image's-path from folderPath
+        self.imgPathList = pd.Series(
+            glob.glob(f"{self.folderPath}/*.jpg", recursive=True)
+        )
         self.detection = modelDetection
+        # Load detection labels
         self.labels = pd.read_csv("./labels.csv", header=None, names=["idx", "labels"])
         self.labels = self.labels["labels"].tolist()
-        # Default window for inference
+        # Output dataframe declaration (empty)
+        self.df = pd.DataFrame(columns=["imgPath", "preds"])
 
     def show_img_with_preds(self, img, preds):
         "Shows predicted labels in image"
@@ -30,33 +35,51 @@ class Inference:
         cv2.imshow(winname="foto-filter", mat=img_predicted)
         cv2.waitKey(500)
 
-    def destroy_cv2_windows(self):
-        "Hold the screen for key input and destroy the windows"
-        print("Done. Press any key to continue ...")
-        cv2.waitKey()
-        cv2.destroyAllWindows()
-
-    def detect(self, imgPath):
+    def detect(self, imgPath, debug=True):
         "Detect objects in an image"
         self.img = cv2.imread(imgPath)
         idxOfPredictedClasses = self.detection.predict(self.img)[:][1]
         # Get labels from indexes
-        preds = list(map(self.labels.__getitem__, idxOfPredictedClasses))
-        print(preds)
-        self.show_img_with_preds(img=self.img, preds=preds)
+        preds = list(set(map(self.labels.__getitem__, idxOfPredictedClasses)))
+        if debug:
+            print(preds)
+            self.show_img_with_preds(img=self.img, preds=preds)
         return preds
 
     def batch_detection(self):
         "Detect objects in a batch of images in a folder"
         for imgPath in tqdm(self.imgPathList):
-            self.detect(imgPath)
-        
+            # Check if image already predicted
+            if not imgPath in self.df.imgPath.to_list():
+                preds = self.detect(imgPath)
+                self.df = self.df.append(
+                    {"imgPath": imgPath, "preds": preds}, ignore_index=True
+                )
+
+    def post_inference(self):
+        "Hold the screen for key input and destroy the windows"
+        print("Done. Press any key to continue ...")
+        # Save preds to file
+        self.df.to_feather(
+            f"./preds/{self.folderPath.replace('/', '').replace('.', '')}.feather"
+        )
+        cv2.waitKey()
+        cv2.destroyAllWindows()
 
     def pre_inference(self):
-        "Console Messages before interface initialization"
+        "Console message before interface initialization"
+        # Check if folder already predicted:
+        featherFilePath = (
+            f"./preds/{self.folderPath.replace('/', '').replace('.', '')}.feather"
+        )
+        if os.path.isfile(featherFilePath):
+            # predict only un-predicted files
+            self.df = pd.read_feather(featherFilePath)
+
         print("Initializing interface ...")
 
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
         self.batch_detection()
+        self.post_inference()

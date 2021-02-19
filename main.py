@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--folderPath",
         type=str,
-        default="./input/",
+        default="./input",
         help="Folder to search for images",
     )
     parser.add_argument(
