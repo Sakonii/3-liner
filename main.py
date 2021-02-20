@@ -10,7 +10,7 @@ def main():
         folderPath=args.folderPath,
         labelFile=args.labelFile,
         modelDetection=detection,
-    ).start_inference()
+    ).start_inference(debug=True)
     return
 
 

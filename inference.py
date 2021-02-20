@@ -5,6 +5,7 @@ import os.path
 
 from cv2 import cv2
 from tqdm import tqdm
+from utils import text_filter
 
 
 class Inference:
@@ -19,8 +20,13 @@ class Inference:
         self.folderPath = folderPath
         self.detection = modelDetection
         # Load detection labels
-        self.labels = pd.read_csv("./labels.csv", header=None, names=["idx", "labels"])
+        self.labels = pd.read_csv(
+            "./labels.csv", header=None, names=["idx", "labels"], usecols=[0, 1]
+        )
         self.labels = self.labels["labels"].tolist()
+        # Load synonyms of classes indexed by labels
+        self.labelsAll = pd.read_csv("./labels.csv", header=None)
+        self.labelsAll = self.labelsAll.drop(self.labelsAll.columns[0], axis=1)
         # Output dataframe declaration (empty)
         self.df = pd.DataFrame(columns=["imgPath", "preds"])
         # List of image's-path from folderPath
@@ -43,16 +49,18 @@ class Inference:
         for imgPath in listOfImgPaths:
             cv2.namedWindow(winname="foto-filter")
             self.img = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
-            self.img = cv2.resize(self.img, (500, 400), interpolation=cv2.INTER_AREA)
+            self.img = cv2.resize(self.img, (336, 224), interpolation=cv2.INTER_AREA)
             listOfImgs.append(self.img)
-
+        # Check for empty list
+        if not listOfImgs:
+            print("\nNo search match found\n")
+            return
         # Concatenate images horizontally:
         self.img = np.concatenate(listOfImgs, axis=1)
-        cv2.imshow(winname=imgPath, mat=self.img)
+        cv2.imshow(winname="foto-filter", mat=self.img)
         cv2.waitKey(500)
         # Hold the screen
-        cv2.waitKey()
-        cv2.destroyAllWindows()
+        self.post_detection(toFeather=False)
 
     def detect(self, imgPath, debug=True):
         "Detect objects in an image"
@@ -71,17 +79,29 @@ class Inference:
             # Check if image already predicted
             if not imgPath in self.df.imgPath.to_list():
                 preds = self.detect(imgPath)
+                # Append preds as well as similar words to preds
                 self.df = self.df.append(
-                    {"imgPath": imgPath, "preds": preds}, ignore_index=True
+                    {
+                        "imgPath": imgPath,
+                        "preds": preds,
+                        "predsAll": self.labelsAll[
+                            pd.DataFrame(self.labelsAll.iloc[:, 0].tolist())
+                            .isin(preds)
+                            .any(1)
+                            .values
+                        ].values.tolist(),
+                    },
+                    ignore_index=True,
                 )
 
-    def post_inference(self, debug=True):
+    def post_detection(self, debug=True, toFeather=True):
         "Hold the screen for key input and destroy the windows"
         print("Done. Press any key to continue ...")
         # Save preds to file
-        self.df.to_feather(
-            f"./preds/{self.folderPath.replace('/', '').replace('.', '')}.feather"
-        )
+        if toFeather:
+            self.df.to_feather(
+                f"./preds/{self.folderPath.replace('/', '').replace('.', '')}.feather"
+            )
         if debug:
             cv2.waitKey()
             cv2.destroyAllWindows()
@@ -99,25 +119,30 @@ class Inference:
 
     def search(self, debug=True):
         "Search inference for text input"
-        searchText = input("> ")
-        # For search words, add score for each mathcing label
-        self.df["score"] = 0
-        for word in searchText.split():
-            self.df["score"] += self.df.preds.map(
-                lambda preds: 1 if word in preds else 0
-            )
-        # Filter top 5 results
-        self.df.sort_values(by=["score"], ascending=False, inplace=True)
-        queriedResults = self.df[self.df["score"] != 0]
-        outputs = queriedResults.imgPath.head(5)
-        if debug:
-            print(queriedResults)
-            self.show_imgs(outputs)
+        while True:
+            searchText = text_filter(input("> "))
+            if searchText == "exit":
+                break
+            # For search words, add score for each mathcing label
+            self.df["score"] = 0
+            for word in searchText.split():
+                self.df["score"] += self.df.predsAll.map(
+                    lambda predsOneCluster: 1
+                    if any(word in preds for preds in predsOneCluster)
+                    else 0
+                )
+            # Filter top 5 results
+            self.df.sort_values(by=["score"], ascending=False, inplace=True)
+            queriedResults = self.df[self.df["score"] != 0]
+            outputs = queriedResults.imgPath.head(5)
+            if debug:
+                print(queriedResults.drop(columns=["predsAll"]))
+                self.show_imgs(outputs)
         return outputs.to_list()
 
-    def start_inference(self):
+    def start_inference(self, debug=True):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
         self.batch_detection()
-        self.post_inference(debug=True)
-        self.search(debug=True)
+        self.post_detection(debug)
+        self.search(debug)
