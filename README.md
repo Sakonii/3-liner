@@ -25,7 +25,7 @@ python3 main.py --folderPath './input' --labelFile labels.csv
 * '--modelDetection' : Filename of weights associated with detection
 * '--cfgPath' : Path to detectron model cfg file relative to 'detectron2/model_zoo'
 * '--labelFile' : Path to model labels (csv file)
-```
+
 
 ## Examples:
 
