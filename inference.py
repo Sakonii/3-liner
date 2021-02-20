@@ -5,7 +5,8 @@ import os.path
 
 from cv2 import cv2
 from tqdm import tqdm
-
+import eel
+eel.init('web')
 
 class Inference:
     "A Wrapper for Inference"
@@ -97,10 +98,15 @@ class Inference:
             self.df = pd.read_feather(featherFilePath)
         print("Initializing interface ...")
 
+    @eel.expose
+    def test(msg):
+        print(msg)
+        return "reverse check"
+
     def search(self, debug=True):
         "Search inference for text input"
         searchText = input("> ")
-        # For search words, add score for each mathcing label
+        # For search words, add score for each matching label
         self.df["score"] = 0
         for word in searchText.split():
             self.df["score"] += self.df.preds.map(
@@ -110,9 +116,12 @@ class Inference:
         self.df.sort_values(by=["score"], ascending=False, inplace=True)
         queriedResults = self.df[self.df["score"] != 0]
         outputs = queriedResults.imgPath.head(5)
+
         if debug:
             print(queriedResults)
             self.show_imgs(outputs)
+
+        eel.start('main.html', size=(1200,700), host='localhost', port=9090)
         return outputs.to_list()
 
     def start_inference(self):
@@ -121,3 +130,4 @@ class Inference:
         self.batch_detection()
         self.post_inference(debug=True)
         self.search(debug=True)
+
