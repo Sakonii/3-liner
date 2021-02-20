@@ -6,7 +6,19 @@ import os.path
 from cv2 import cv2
 from tqdm import tqdm
 import eel
-eel.init('web')
+
+
+class UI:
+    def __init__(self):
+        self.output_url = []
+        eel.init('../foto-filter')
+
+    @eel.expose
+    def test(msg):
+        print(msg)
+        return ui.output_url
+ui = UI()
+
 
 class Inference:
     "A Wrapper for Inference"
@@ -49,7 +61,7 @@ class Inference:
 
         # Concatenate images horizontally:
         self.img = np.concatenate(listOfImgs, axis=1)
-        cv2.imshow(winname=imgPath, mat=self.img)
+        cv2.imshow(winname="foto-filter", mat=self.img)
         cv2.waitKey(500)
         # Hold the screen
         cv2.waitKey()
@@ -76,7 +88,7 @@ class Inference:
                     {"imgPath": imgPath, "preds": preds}, ignore_index=True
                 )
 
-    def post_inference(self, debug=True):
+    def post_detection(self, debug=True):
         "Hold the screen for key input and destroy the windows"
         print("Done. Press any key to continue ...")
         # Save preds to file
@@ -98,10 +110,7 @@ class Inference:
             self.df = pd.read_feather(featherFilePath)
         print("Initializing interface ...")
 
-    @eel.expose
-    def test(msg):
-        print(msg)
-        return "reverse check"
+
 
     def search(self, debug=True):
         "Search inference for text input"
@@ -120,14 +129,14 @@ class Inference:
         if debug:
             print(queriedResults)
             self.show_imgs(outputs)
-
-        eel.start('main.html', size=(1200,700), host='localhost', port=9090)
-        return outputs.to_list()
+        for it in outputs.to_list():
+            ui.output_url.append(it)
+        eel.start('main.html', size=(1200,700), host='localhost', port=5000)
 
     def start_inference(self):
         "Mouse-Events Ready User Interface"
         self.pre_inference()
         self.batch_detection()
-        self.post_inference(debug=True)
+        self.post_detection(debug=True)
         self.search(debug=True)
 
