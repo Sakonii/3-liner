@@ -96,7 +96,7 @@ class Inference:
 
     def post_detection(self, debug=True, toFeather=True):
         "Hold the screen for key input and destroy the windows"
-        print("Done. Press any key to continue ...")
+        print("Done. Press any key on the window to continue ...")
         # Save preds to file
         if toFeather:
             self.df.to_feather(
@@ -119,13 +119,19 @@ class Inference:
 
     def search(self, debug=True):
         "Search inference for text input"
+        print("Enter search query:")
         while True:
             searchText = text_filter(input("> "))
-            if searchText == "exit":
+            if searchText in ["exit", "quit"]:
                 break
             # For search words, add score for each mathcing label
             self.df["score"] = 0
             for word in searchText.split():
+                # Increase score for every strong labels detected
+                self.df["score"] += self.df.preds.map(
+                    lambda preds: 2 if word in preds else 0
+                )
+                # Weak labels have lesser impact on the score
                 self.df["score"] += self.df.predsAll.map(
                     lambda predsOneCluster: 1
                     if any(word in preds for preds in predsOneCluster)
@@ -137,6 +143,7 @@ class Inference:
             outputs = queriedResults.imgPath.head(5)
             if debug:
                 print(queriedResults.drop(columns=["predsAll"]))
+                print("Press any key on the window to continue or type exit")
                 self.show_imgs(outputs)
         return outputs.to_list()
 

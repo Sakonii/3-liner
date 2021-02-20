@@ -1,4 +1,4 @@
-0,person,man,buddy,guy,woman,boy,girl,gentleman,guy,crowd,fellow,human,chap,crew,people,lad,staff,servant,friend,friends,we
+0,person,man,buddy,guy,woman,boy,girl,gentleman,guy,crowd,fellow,human,chap,crew,people,lad,staff,servant,friend,friends
 1,bicycle,cycle,pedal
 2,car,vehicle,wheels,wagon,automobile,limo,cart
 3,motorcycle,motorbike,bike
@@ -25,7 +25,7 @@
 24,backpack,bag,container,sack,carrier,travel
 25,umbrella,parasol,sunshade,gamp,travel, beach
 26,handbag,bag,container,sack,carrier,travel
-27,tie,string,dress,uniform,meeting,formal
+27,tie,string,dress,uniform,meeting,formal, presentation
 28,suitcase,backpack,bag,container,sack,carrier,formal
 29,frisbee,disk,disc,glide
 30,skis,ice,cold,winter
@@ -53,7 +53,7 @@
 52,hotdog,restaurant,food,kitchen
 53,pizza,restaurant,food,kitchen
 54,donut,bakery,restaurant,food,kitchen,food
-55,cake,bakery,restaurant,food,kitchen,food
+55,cake,bakery,restaurant,food,kitchen,food,birthday
 56,chair,conference,meeting,room,gathering,party,group
 57,couch,livingroom,party,family
 58,pottedplant,plant,gardening,gardener,seeds
@@ -72,7 +72,7 @@
 71,sink,kitchen,toilet,bathroom,pottery
 72,refrigerator,kitchen,food,fridge
 73,book,library,student,teacher,students,school
-74,clock,livingroom,time,exam,classroom
+74,clock,livingroom,time,exam,classroom,waiting,wait
 75,vase,showcase,museum
 76,scissors,tools,pliers,scissor,stapler
 77,teddybear,kids,toys
