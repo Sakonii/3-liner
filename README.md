@@ -1,5 +1,4 @@
 # Shasin-Finder
-
 Search for images in a folder or photo library by tags, objects present or photo description.
 A computer vision approach to help finding images based on how people actually remember their photos.
 
@@ -31,12 +30,16 @@ python3 main.py --folderPath './input' --labelFile labels.csv
 
 * Photo was taken in winter:
 
-<div align="center"><img src="https://github.com/Sakonii/Shasin-Finder/tree/main/output_examples/winter.png" width="500" height="162"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/Sakonii/Shasin-Finder/main/output_examples/winter.png"></div>
 
 * Nature, there were many animals
 
-<div align="center"><img src="https://github.com/Sakonii/Shasin-Finder/tree/main/output_examples/nature_animals.png" width="352" height="144"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/Sakonii/Shasin-Finder/main/output_examples/nature_animals.png"></div>
 
 * That cat was wearing a tie
 
-<div align="center"><img src="https://github.com/Sakonii/Shasin-Finder/tree/main/output_examples/cat_tie.png" width="350" height="144"></div>
+<div align="center"><img src="https://raw.githubusercontent.com/Sakonii/Shasin-Finder/main/output_examples/cat_tie.png"></div>
+
+## Demo Video:
+
+https://www.youtube.com/watch?v=oW-_hs5r68s&feature=youtu.be&ab_channel=UtsavMaskey
